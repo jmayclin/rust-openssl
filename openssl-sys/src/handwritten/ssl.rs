@@ -568,12 +568,16 @@ extern "C" {
 
     pub fn SSL_get_peer_cert_chain(ssl: *const SSL) -> *mut stack_st_X509;
 
+    //pub fn SSL_get_peer_tmp_key(ssl: *const SSL, key: *mut *mut EVP_PKEY);
+
     pub fn SSL_CTX_set_verify(
         ctx: *mut SSL_CTX,
         mode: c_int,
         verify_callback: Option<extern "C" fn(c_int, *mut X509_STORE_CTX) -> c_int>,
     );
     pub fn SSL_CTX_set_verify_depth(ctx: *mut SSL_CTX, depth: c_int);
+
+    pub fn SSL_CTX_set_security_level(ctx: *mut SSL_CTX, level: c_int);
 
     #[cfg(any(ossl111, libressl340))]
     pub fn SSL_CTX_set_post_handshake_auth(ctx: *mut SSL_CTX, val: c_int);

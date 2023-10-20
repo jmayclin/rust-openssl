@@ -349,6 +349,8 @@ pub const SSL_CTRL_SET_ECDH_AUTO: c_int = 94;
 pub const SSL_CTRL_SET_SIGALGS_LIST: c_int = 98;
 #[cfg(ossl102)]
 pub const SSL_CTRL_SET_VERIFY_CERT_STORE: c_int = 106;
+#[cfg(ossl300)]
+pub const SSL_CTRL_GET_PEER_TMP_KEY: c_int = 109;
 #[cfg(ossl110)]
 pub const SSL_CTRL_GET_EXTMS_SUPPORT: c_int = 122;
 #[cfg(any(ossl110, libressl261))]
@@ -374,6 +376,10 @@ pub unsafe fn SSL_set_tmp_dh(ssl: *mut SSL, dh: *mut DH) -> c_long {
 
 pub unsafe fn SSL_set_tmp_ecdh(ssl: *mut SSL, key: *mut EC_KEY) -> c_long {
     SSL_ctrl(ssl, SSL_CTRL_SET_TMP_ECDH, 0, key as *mut c_void)
+}
+
+pub unsafe fn SSL_get_peer_tmp_key(ssl: *mut SSL, key: *mut *mut EVP_PKEY) -> c_long {
+    SSL_ctrl(ssl, SSL_CTRL_GET_PEER_TMP_KEY, 0, key as *mut c_void)
 }
 
 pub unsafe fn SSL_CTX_add_extra_chain_cert(ctx: *mut SSL_CTX, x509: *mut X509) -> c_long {

@@ -67,7 +67,7 @@ use crate::ex_data::Index;
 use crate::hash::MessageDigest;
 #[cfg(any(ossl110, libressl270))]
 use crate::nid::Nid;
-use crate::pkey::{HasPrivate, PKeyRef, Params, Private};
+use crate::pkey::{HasPrivate, PKeyRef, Params, Private, Public};
 use crate::srtp::{SrtpProtectionProfile, SrtpProtectionProfileRef};
 use crate::ssl::bio::BioMethod;
 use crate::ssl::callbacks::*;
@@ -746,6 +746,13 @@ impl SslContextBuilder {
     pub fn set_verify(&mut self, mode: SslVerifyMode) {
         unsafe {
             ffi::SSL_CTX_set_verify(self.as_ptr(), mode.bits() as c_int, None);
+        }
+    }
+
+    #[corresponds(SSL_CTX_set_security_level)]
+    pub fn set_security_level(&mut self, level: u32) {
+        unsafe {
+            ffi::SSL_CTX_set_security_level(self.as_ptr(), level as c_int);
         }
     }
 
@@ -2528,6 +2535,29 @@ impl SslRef {
             X509::from_ptr_opt(ptr)
         }
     }
+
+    /// Returns the temporary key used during key exchange
+    // We use an owned value because EVP_KEY free need to be called when it is dropped
+    #[corresponds(SSL_get_server_tmp_key)]
+    pub fn peer_temp_key(&self) -> Option<crate::pkey::PKey<Public>> {
+        unsafe {
+            let mut key = ptr::null_mut();
+            ffi::SSL_get_peer_tmp_key(self.as_ptr(), &mut key);
+            let pkey = crate::pkey::PKey::<crate::pkey::Public>::from_ptr_opt(key);
+            // let other = pkey.unwrap();
+            pkey
+        }
+    }
+
+    /// Returns a shared reference to the stack of certificates making up the chain from the leaf.
+    // #[corresponds(SSL_CTX_get_extra_chain_certs)]
+    // pub fn extra_chain_certs(&self) -> &StackRef<X509> {
+    //     unsafe {
+    //         let mut chain = ptr::null_mut();
+    //         ffi::SSL_CTX_get_extra_chain_certs(self.as_ptr(), &mut chain);
+    //         StackRef::from_const_ptr_opt(chain).expect("extra chain certs must not be null")
+    //     }
+    // }
 
     /// Returns the certificate chain of the peer, if present.
     ///
